@@ -1,0 +1,67 @@
+<idea-plugin>
+    <id>org.hostrunner.plugin</id>
+    <name>HostRunner</name>
+    <description>用户自定义本地host内容</description>
+    <version>1.0.0</version>
+    <vendor>HostRunner Team</vendor>
+    <idea-version since-build="243" until-build="251.*"/>
+
+    <description><![CDATA[
+      HostRunner是一个IntelliJ IDEA插件，帮助开发者快速管理和切换不同的hosts配置。
+      <br><br>
+      主要功能：
+      <ul>
+        <li>配置管理：在设置页面管理多组hosts和VM选项配置</li>
+        <li>模板功能：提供开发、测试、生产环境预设模板</li>
+        <li>工具窗口：通过卡片式界面快速选择和切换配置</li>
+        <li>自动注入：启动时自动注入VM选项和更新hosts文件</li>
+      </ul>
+    ]]></description>
+
+    <change-notes><![CDATA[
+      <h3>1.0.0</h3>
+      <ul>
+        <li>初始版本发布</li>
+        <li>支持多组hosts配置管理</li>
+        <li>提供开发、测试、生产环境模板</li>
+        <li>支持Spring Boot和Application运行配置</li>
+        <li>自动注入VM选项和管理hosts文件</li>
+      </ul>
+    ]]></change-notes>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <!-- 依赖模块 -->
+    <depends>com.intellij.modules.platform</depends>
+    <!-- 同时需要引入,否则2020版本找不到 com.intellij.psi -->
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 设置页面配置 -->
+        <applicationConfigurable
+            instance="org.hostrunner.settings.HostConfigurationConfigurable"
+            displayName="Host Configuration"
+            groupId="tools"/>
+
+        <!-- 工具窗口 -->
+        <toolWindow
+            id="Host Configuration"
+            anchor="right"
+            factoryClass="org.hostrunner.toolwindow.HostConfigurationToolWindow"
+            icon="/icons/ip-address.svg"/>
+
+        <!-- Spring Boot运行配置扩展 -->
+        <runConfigurationExtension
+            implementation="org.hostrunner.springboot.SpringBootRunConfigurationExtension"/>
+
+        <!-- 应用服务 -->
+        <applicationService
+            serviceImplementation="org.hostrunner.service.HostConfigurationService"/>
+
+        <!-- 持久化状态 -->
+        <applicationService
+            serviceImplementation="org.hostrunner.persistent.HostConfigurationState"/>
+    </extensions>
+
+</idea-plugin>
