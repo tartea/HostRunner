@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class HostConfigurationTableModel extends AbstractTableModel {
 
-    private final String[] columnNames = {"名称", "Hosts内容预览", "JDK版本", "创建时间"};
+    private final String[] columnNames = {"名称", "Hosts内容预览", "JDK版本"};
     private List<HostConfiguration> configurations = new ArrayList<>();
 
     public void refreshData(List<HostConfiguration> newConfigurations) {
@@ -53,8 +53,6 @@ public class HostConfigurationTableModel extends AbstractTableModel {
                 return lines.length > 0 ? lines[0] + (lines.length > 1 ? "..." : "") : "<空>";
             case 2: // JDK版本
                 return config.isJdk9OrAbove() ? "JDK 9+" : "JDK 9-";
-            case 3: // 创建时间
-                return formatTimestamp(config.getCreateTime());
             default:
                 return null;
         }
@@ -67,10 +65,6 @@ public class HostConfigurationTableModel extends AbstractTableModel {
         return configurations.get(rowIndex);
     }
 
-    private String formatTimestamp(long timestamp) {
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm");
-        return sdf.format(new java.util.Date(timestamp));
-    }
 
     public void addConfiguration(HostConfiguration config) {
         configurations.add(config);

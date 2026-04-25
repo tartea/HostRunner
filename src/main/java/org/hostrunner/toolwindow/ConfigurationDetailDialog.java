@@ -62,34 +62,6 @@ public class ConfigurationDetailDialog extends DialogWrapper {
         panel.add(jdkField, gbc);
         row++;
 
-        // 创建时间
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.weightx = 0;
-        panel.add(new JLabel("创建时间:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        JTextField createTimeField = new JTextField(sdf.format(new java.util.Date(configuration.getCreateTime())));
-        createTimeField.setEditable(false);
-        createTimeField.setBackground(UIManager.getColor("TextField.background"));
-        panel.add(createTimeField, gbc);
-        row++;
-
-        // 更新时间
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.weightx = 0;
-        panel.add(new JLabel("更新时间:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        JTextField updateTimeField = new JTextField(sdf.format(new java.util.Date(configuration.getUpdateTime())));
-        updateTimeField.setEditable(false);
-        updateTimeField.setBackground(UIManager.getColor("TextField.background"));
-        panel.add(updateTimeField, gbc);
-        row++;
 
         // Hosts内容
         gbc.gridx = 0;

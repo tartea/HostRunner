@@ -38,12 +38,6 @@
     <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- 设置页面配置 -->
-        <applicationConfigurable
-            instance="org.hostrunner.settings.HostConfigurationConfigurable"
-            displayName="Host Configuration"
-            groupId="tools"/>
-
         <!-- 工具窗口 -->
         <toolWindow
             id="Host Configuration"
@@ -62,6 +56,11 @@
         <!-- 持久化状态 -->
         <applicationService
             serviceImplementation="org.hostrunner.persistent.HostConfigurationState"/>
+
+        <!-- 状态栏组件 -->
+        <statusBarWidgetFactory
+            implementation="org.hostrunner.toolwindow.HostConfigurationStatusWidgetFactory"
+            id="HostConfigurationStatus"/>
     </extensions>
 
 </idea-plugin>
