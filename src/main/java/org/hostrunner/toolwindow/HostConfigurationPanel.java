@@ -1,6 +1,8 @@
 package org.hostrunner.toolwindow;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBusConnection;
+import org.hostrunner.messaging.HostConfigurationMessageHandler;
 import org.hostrunner.service.HostConfigurationService;
 import org.hostrunner.toolwindow.HostConfigurationStatusWidget;
 
@@ -19,11 +21,32 @@ public class HostConfigurationPanel extends JPanel {
     private JTabbedPane tabbedPane;
     private ConfigurationManagementPanel managementPanel;
     private ConfigurationSelectionPanel selectionPanel;
+    private MessageBusConnection messageBusConnection;
 
     public HostConfigurationPanel(Project project) {
         this.project = project;
         this.service = HostConfigurationService.getInstance();
         initializeComponents();
+        setupMessageBusSubscription();
+    }
+
+    private void setupMessageBusSubscription() {
+        // 订阅消息总线以接收配置变更通知
+        messageBusConnection = project.getMessageBus().connect();
+        messageBusConnection.subscribe(HostConfigurationMessageHandler.TOPIC, new HostConfigurationMessageHandler() {
+            @Override
+            public void onConfigurationChanged(String changeType, String configurationId, String projectName) {
+                // 避免处理自己发送的消息（可选优化）
+                if (projectName.equals(project.getName())) {
+                    return;
+                }
+
+                // 在EDT中执行UI更新
+                SwingUtilities.invokeLater(() -> {
+                    refresh();
+                });
+            }
+        });
     }
 
     private void initializeComponents() {
@@ -70,5 +93,15 @@ public class HostConfigurationPanel extends JPanel {
         // 刷新所有标签页
         managementPanel.refreshTable();
         selectionPanel.refresh();
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        // 清理消息总线连接
+        if (messageBusConnection != null) {
+            messageBusConnection.disconnect();
+            messageBusConnection = null;
+        }
     }
 }
