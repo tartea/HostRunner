@@ -4,6 +4,8 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.messages.MessageBusConnection;
+import org.hostrunner.messaging.HostConfigurationMessageHandler;
 import org.hostrunner.model.HostConfiguration;
 import org.hostrunner.service.HostConfigurationService;
 import org.hostrunner.settings.HostConfigurationForm;
@@ -24,12 +26,39 @@ public class ConfigurationManagementPanel extends JPanel {
     private final HostConfigurationService service;
     private final Consumer<Void> refreshCallback;
     private final com.intellij.openapi.project.Project project;
+    private MessageBusConnection messageBusConnection;
 
     public ConfigurationManagementPanel(com.intellij.openapi.project.Project project, Consumer<Void> refreshCallback) {
         this.service = HostConfigurationService.getInstance();
         this.refreshCallback = refreshCallback;
         this.project = project;
         initializeComponents();
+        setupMessageBusSubscription();
+    }
+
+    private void setupMessageBusSubscription() {
+        // 订阅消息总线以接收配置变更通知
+        messageBusConnection = project.getMessageBus().connect();
+        messageBusConnection.subscribe(HostConfigurationMessageHandler.TOPIC, new HostConfigurationMessageHandler() {
+            @Override
+            public void onConfigurationChanged(String changeType, String configurationId, String projectName) {
+                // 避免处理自己发送的消息（可选优化）
+                if (projectName.equals(project.getName())) {
+                    return;
+                }
+
+                // 在EDT中执行UI更新
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    refreshTable();
+                    // 通知其他标签页刷新
+                    if (refreshCallback != null) {
+                        refreshCallback.accept(null);
+                    }
+                    // 更新状态栏显示
+                    HostConfigurationStatusWidget.updateStatus(project);
+                });
+            }
+        });
     }
 
     private void initializeComponents() {
@@ -130,5 +159,15 @@ public class ConfigurationManagementPanel extends JPanel {
 
     public void refreshTable() {
         tableModel.refreshData(service.getAllConfigurations());
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        // 清理消息总线连接
+        if (messageBusConnection != null) {
+            messageBusConnection.disconnect();
+            messageBusConnection = null;
+        }
     }
 }
