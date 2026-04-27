@@ -2,6 +2,8 @@ package org.hostrunner.toolwindow;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.util.messages.MessageBusConnection;
+import org.hostrunner.messaging.HostConfigurationMessageHandler;
 import org.hostrunner.model.HostConfiguration;
 import org.hostrunner.service.HostConfigurationService;
 import org.hostrunner.toolwindow.HostConfigurationStatusWidget;
@@ -33,12 +35,34 @@ public class ConfigurationSelectionPanel extends JPanel {
     private JButton clearButton;
     private JButton viewCurrentButton;
     private ButtonGroup selectionGroup;
+    private MessageBusConnection messageBusConnection;
 
     public ConfigurationSelectionPanel(Project project) {
         this.project = project;
         this.service = HostConfigurationService.getInstance();
         initializeComponents();
+        setupMessageBusSubscription();
         refreshConfigurations();
+    }
+
+    private void setupMessageBusSubscription() {
+        // 订阅消息总线以接收配置变更通知
+        messageBusConnection = project.getMessageBus().connect();
+        messageBusConnection.subscribe(HostConfigurationMessageHandler.TOPIC, new HostConfigurationMessageHandler() {
+            @Override
+            public void onConfigurationChanged(String changeType, String configurationId, String projectName) {
+                // 避免处理自己发送的消息（可选优化）
+                if (projectName.equals(project.getName())) {
+                    return;
+                }
+
+                // 在EDT中执行UI更新
+                SwingUtilities.invokeLater(() -> {
+                    refreshConfigurations();
+                    validateSelection();
+                });
+            }
+        });
     }
 
     private void initializeComponents() {
@@ -213,6 +237,16 @@ public class ConfigurationSelectionPanel extends JPanel {
         SwingUtilities.invokeLater(this::refreshConfigurations);
     }
 
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        // 清理消息总线连接
+        if (messageBusConnection != null) {
+            messageBusConnection.disconnect();
+            messageBusConnection = null;
+        }
+    }
+
     /**
      * 验证当前选中的配置是否存在，用于标签页切换时调用
      */
@@ -236,20 +270,9 @@ public class ConfigurationSelectionPanel extends JPanel {
     }
 
     private void showCurrentConfigurationDetail() {
-        HostConfiguration selectedConfig = service.getSelectedConfiguration();
-        if (selectedConfig != null) {
-            // 显示当前配置的详情
-            ConfigurationDetailDialog dialog = new ConfigurationDetailDialog(selectedConfig);
-            dialog.show();
-        } else {
-            // 没有生效的配置，显示提示信息
-            javax.swing.JOptionPane.showMessageDialog(
-                this,
-                "当前没有生效的配置",
-                "配置详情",
-                javax.swing.JOptionPane.INFORMATION_MESSAGE
-            );
-        }
+        // 显示工具窗口内容的完整对话框
+        ToolWindowContentDialog dialog = new ToolWindowContentDialog(project);
+        dialog.show();
     }
 
 }
