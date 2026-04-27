@@ -19,8 +19,6 @@ public class HostConfigurationForm extends DialogWrapper {
     private JTextField nameField;
     private JBTextArea hostsContentArea;
     private JBTextArea vmOptionsArea;
-    private JRadioButton jdk9AboveButton;
-    private JRadioButton jdk9BelowButton;
 
     public HostConfigurationForm(HostConfiguration configuration) {
         super(true);
@@ -78,35 +76,9 @@ public class HostConfigurationForm extends DialogWrapper {
         JBScrollPane vmOptionsScroll = new JBScrollPane(vmOptionsArea);
         panel.add(vmOptionsScroll, gbc);
 
-        // JDK版本选择
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(new JLabel("JDK版本:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridwidth = 2;
-        JPanel jdkPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        ButtonGroup jdkGroup = new ButtonGroup();
-        jdk9AboveButton = new JRadioButton("JDK 9+");
-        jdk9BelowButton = new JRadioButton("JDK 9-");
-        jdkGroup.add(jdk9AboveButton);
-        jdkGroup.add(jdk9BelowButton);
-
-        if (configuration.isJdk9OrAbove()) {
-            jdk9AboveButton.setSelected(true);
-        } else {
-            jdk9BelowButton.setSelected(true);
-        }
-
-        jdkPanel.add(jdk9AboveButton);
-        jdkPanel.add(jdk9BelowButton);
-        panel.add(jdkPanel, gbc);
-
         // 提示信息
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 3;
         gbc.gridwidth = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         JLabel hintLabel = new JLabel("<html><small>提示：VM选项使用空格分隔多个参数，如：-Xmx512m -Dspring.profiles.active=dev</small></html>");
@@ -136,7 +108,6 @@ public class HostConfigurationForm extends DialogWrapper {
         configuration.setName(nameField.getText().trim());
         configuration.setHostsContent(hostsContentArea.getText());
         configuration.setVmOptions(vmOptionsArea.getText());
-        configuration.setJdk9OrAbove(jdk9AboveButton.isSelected());
         return configuration;
     }
 

@@ -43,7 +43,6 @@ public class ConfigurationTemplate {
         devTemplate.setVmOptions(
             "-Xmx512m -Dspring.profiles.active=dev -Dspring.devtools.restart.enabled=true"
         );
-        devTemplate.setJdk9OrAbove(true);
         templates.add(devTemplate);
 
         // 测试环境模板
@@ -57,7 +56,6 @@ public class ConfigurationTemplate {
         testTemplate.setVmOptions(
             "-Xmx1024m -Dspring.profiles.active=test -Dlogging.level.com.example=DEBUG"
         );
-        testTemplate.setJdk9OrAbove(true);
         templates.add(testTemplate);
 
         // 生产环境模板
@@ -67,7 +65,6 @@ public class ConfigurationTemplate {
         prodTemplate.setVmOptions(
             "-Xmx2048m -XX:+UseG1GC -Dspring.profiles.active=prod"
         );
-        prodTemplate.setJdk9OrAbove(true);
         templates.add(prodTemplate);
 
         return templates;
@@ -105,7 +102,6 @@ public class ConfigurationTemplate {
         newConfig.setName(newName);
         newConfig.setHostsContent(template.getHostsContent());
         newConfig.setVmOptions(template.getVmOptions());
-        newConfig.setJdk9OrAbove(template.isJdk9OrAbove());
         return newConfig;
     }
 
@@ -127,7 +123,6 @@ public class ConfigurationTemplate {
 
         StringBuilder preview = new StringBuilder();
         preview.append("配置名称: ").append(template.getName()).append("\n");
-        preview.append("JDK版本: ").append(template.isJdk9OrAbove() ? "JDK 9+" : "JDK 9-").append("\n");
         preview.append("Hosts内容预览: ").append(template.getHostsContent() != null ?
             template.getHostsContent().split("\n")[0] + "..." : "空").append("\n");
         preview.append("VM选项预览: ").append(template.getVmOptions() != null ?

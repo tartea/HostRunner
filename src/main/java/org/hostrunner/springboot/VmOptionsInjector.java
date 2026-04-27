@@ -27,14 +27,8 @@ public class VmOptionsInjector {
 
         List<String> vmOptions = new ArrayList<>();
 
-        // 添加hosts文件参数
-        String hostsFilePath = HostsFileManager.getHostsFileAbsolutePath(project);
-        if (hostsFilePath != null) {
-            String hostsParam = configuration.isJdk9OrAbove()
-                ? "-Djdk.net.hosts.file=" + hostsFilePath
-                : "-Dsun.net.hosts.file=" + hostsFilePath;
-            vmOptions.add(hostsParam);
-        }
+        // 注意：由于现在直接写入系统hosts文件，不需要设置hosts文件参数
+        // 系统会自动使用/etc/hosts或system32\drivers\etc\hosts
 
         // 添加用户自定义VM选项
         if (configuration.getVmOptions() != null && !configuration.getVmOptions().trim().isEmpty()) {
@@ -67,15 +61,8 @@ public class VmOptionsInjector {
 
         // 注意：ParametersList没有直接的remove方法，这里只是预留接口
         // 实际应用中可能需要更复杂的逻辑来处理参数移除
-        String hostsFilePath = HostsFileManager.getHostsFileAbsolutePath(project);
-        if (hostsFilePath != null) {
-            String hostsParam = configuration.isJdk9OrAbove()
-                ? "-Djdk.net.hosts.file=" + hostsFilePath
-                : "-Dsun.net.hosts.file=" + hostsFilePath;
-
-            // 由于ParametersList API限制，这里暂时不实现移除逻辑
-            // 实际使用中，注入时会检查是否已存在避免重复
-        }
+        // 由于现在直接写入系统hosts文件，不需要移除hosts文件参数
+        // 系统会自动使用更新后的hosts文件
     }
 
     /**

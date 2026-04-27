@@ -12,19 +12,17 @@ public class HostConfiguration {
     private String name;            // 配置名称
     private String hostsContent;    // hosts文件内容
     private String vmOptions;       // 用户自定义VM选项
-    private boolean jdk9OrAbove;    // true: JDK9+, false: JDK9-
 
     // 构造函数
     public HostConfiguration() {
         this.id = UUID.randomUUID().toString();
     }
 
-    public HostConfiguration(String name, String hostsContent, String vmOptions, boolean jdk9OrAbove) {
+    public HostConfiguration(String name, String hostsContent, String vmOptions) {
         this();
         this.name = name;
         this.hostsContent = hostsContent;
         this.vmOptions = vmOptions;
-        this.jdk9OrAbove = jdk9OrAbove;
     }
 
     // getter和setter方法
@@ -46,10 +44,6 @@ public class HostConfiguration {
         this.vmOptions = vmOptions;
     }
 
-    public boolean isJdk9OrAbove() { return jdk9OrAbove; }
-    public void setJdk9OrAbove(boolean jdk9OrAbove) {
-        this.jdk9OrAbove = jdk9OrAbove;
-    }
 
     // 序列化方法
     public Map<String, Object> toMap() {
@@ -58,7 +52,6 @@ public class HostConfiguration {
         map.put("name", name);
         map.put("hostsContent", hostsContent);
         map.put("vmOptions", vmOptions);
-        map.put("jdk9OrAbove", jdk9OrAbove);
         return map;
     }
 
@@ -68,7 +61,6 @@ public class HostConfiguration {
         config.name = (String) map.get("name");
         config.hostsContent = (String) map.get("hostsContent");
         config.vmOptions = (String) map.get("vmOptions");
-        config.jdk9OrAbove = map.get("jdk9OrAbove") != null ? (Boolean) map.get("jdk9OrAbove") : true;
         return config;
     }
 
@@ -90,7 +82,6 @@ public class HostConfiguration {
         return "HostConfiguration{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
-                ", jdk9OrAbove=" + jdk9OrAbove +
                 '}';
     }
 }

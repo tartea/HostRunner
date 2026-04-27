@@ -7,8 +7,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 
 /**
  * 配置卡片组件
@@ -31,12 +29,6 @@ public class ConfigurationCard extends JPanel {
 
         initializeComponents(buttonGroup);
         updateAppearance();
-    }
-
-    private void showDetailDialog() {
-        Project project = ProjectManager.getInstance().getDefaultProject();
-        ConfigurationDetailDialog dialog = new ConfigurationDetailDialog(configuration);
-        dialog.show();
     }
 
     private void initializeComponents(ButtonGroup buttonGroup) {
@@ -100,18 +92,9 @@ public class ConfigurationCard extends JPanel {
             contentPanel.add(hostsLabel);
         }
 
-        // 按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 5));
-        JButton viewButton = new JButton("查看");
-        viewButton.setFont(viewButton.getFont().deriveFont(9f));
-        viewButton.setMargin(new Insets(2, 6, 2, 6));
-        viewButton.addActionListener(e -> showDetailDialog());
-        buttonPanel.add(viewButton);
-
         // 布局
         add(selectionButton, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.EAST);
 
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
         setPreferredSize(new Dimension(300, 70));

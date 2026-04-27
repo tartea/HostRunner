@@ -12,6 +12,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.BorderFactory;
+import javax.swing.JTextField;
+import javax.swing.Box;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
@@ -21,6 +23,8 @@ import java.awt.BorderLayout;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.List;
 
 /**
@@ -33,7 +37,7 @@ public class ConfigurationSelectionPanel extends JPanel {
     private JPanel cardsPanel;
     private JButton refreshButton;
     private JButton clearButton;
-    private JButton viewCurrentButton;
+    private JTextField searchField;
     private ButtonGroup selectionGroup;
     private MessageBusConnection messageBusConnection;
 
@@ -69,26 +73,40 @@ public class ConfigurationSelectionPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // 顶部按钮面板
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        // 顶部面板使用 BorderLayout
+        JPanel topPanel = new JPanel(new BorderLayout(10, 5));
+
+        // 搜索框面板 - 放在最左边
+        JPanel searchPanel = new JPanel(new BorderLayout(5, 0));
+        searchPanel.add(new JLabel("搜索:"), BorderLayout.WEST);
+        searchField = new JTextField(20);
+        searchField.setToolTipText("输入配置名称进行搜索");
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                filterConfigurations(searchField.getText().trim());
+            }
+        });
+        searchPanel.add(searchField, BorderLayout.CENTER);
+
+        topPanel.add(searchPanel, BorderLayout.WEST);
+
+        // 按钮面板 - 放在搜索框右边
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
 
         // 刷新按钮
         refreshButton = new JButton("刷新");
         refreshButton.addActionListener(e -> refreshConfigurations());
         refreshButton.setFocusPainted(false);
-        topPanel.add(refreshButton);
+        buttonPanel.add(refreshButton);
 
         // 清空选择按钮
         clearButton = new JButton("清空选择");
         clearButton.addActionListener(e -> clearAllSelections());
         clearButton.setFocusPainted(false);
-        topPanel.add(clearButton);
+        buttonPanel.add(clearButton);
 
-        // 查看当前配置按钮
-        viewCurrentButton = new JButton("查看当前配置");
-        viewCurrentButton.addActionListener(e -> showCurrentConfigurationDetail());
-        viewCurrentButton.setFocusPainted(false);
-        topPanel.add(viewCurrentButton);
+        topPanel.add(buttonPanel, BorderLayout.CENTER);
 
         add(topPanel, BorderLayout.NORTH);
 
@@ -103,6 +121,10 @@ public class ConfigurationSelectionPanel extends JPanel {
     }
 
     private void refreshConfigurations() {
+        filterConfigurations(searchField.getText().trim());
+    }
+
+    private void filterConfigurations(String searchText) {
         // 清空现有卡片
         cardsPanel.removeAll();
         selectionGroup = new ButtonGroup();
@@ -132,15 +154,38 @@ public class ConfigurationSelectionPanel extends JPanel {
             emptyLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
             cardsPanel.add(emptyLabel);
         } else {
-            for (HostConfiguration config : configurations) {
-                ConfigurationCard card = new ConfigurationCard(
-                    config,
-                    selectedConfig != null && selectedConfig.getId().equals(config.getId()),
-                    selectionGroup,
-                    this::onConfigurationSelected
-                );
-                cardsPanel.add(card);
-                cardsPanel.add(Box.createVerticalStrut(5));
+            // 过滤配置
+            List<HostConfiguration> filteredConfigurations = configurations;
+            if (searchText != null && !searchText.isEmpty()) {
+                String searchLower = searchText.toLowerCase();
+                filteredConfigurations = configurations.stream()
+                    .filter(config -> {
+                        String configName = config.getName().toLowerCase();
+                        String hostsContent = config.getHostsContent() != null ? config.getHostsContent().toLowerCase() : "";
+                        String vmOptions = config.getVmOptions() != null ? config.getVmOptions().toLowerCase() : "";
+                        return configName.contains(searchLower) ||
+                               hostsContent.contains(searchLower) ||
+                               vmOptions.contains(searchLower);
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            }
+
+            if (filteredConfigurations.isEmpty() && searchText != null && !searchText.isEmpty()) {
+                JLabel noResultsLabel = new JLabel("未找到匹配的配置");
+                noResultsLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                noResultsLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+                cardsPanel.add(noResultsLabel);
+            } else {
+                for (HostConfiguration config : filteredConfigurations) {
+                    ConfigurationCard card = new ConfigurationCard(
+                        config,
+                        selectedConfig != null && selectedConfig.getId().equals(config.getId()),
+                        selectionGroup,
+                        this::onConfigurationSelected
+                    );
+                    cardsPanel.add(card);
+                    cardsPanel.add(Box.createVerticalStrut(5));
+                }
             }
         }
 
@@ -217,7 +262,7 @@ public class ConfigurationSelectionPanel extends JPanel {
 
     private void updateHostsFileImmediately(HostConfiguration configuration) {
         try {
-            org.hostrunner.springboot.HostsFileManager.updateHostsFile(project, configuration.getHostsContent());
+            org.hostrunner.springboot.HostsFileManager.updateHostsFile(configuration.getHostsContent());
         } catch (Exception e) {
             // 静默处理错误，避免影响用户体验
             System.err.println("更新hosts文件失败: " + e.getMessage());
@@ -226,7 +271,7 @@ public class ConfigurationSelectionPanel extends JPanel {
 
     private void clearHostsFileImmediately() {
         try {
-            org.hostrunner.springboot.HostsFileManager.clearHostsFile(project);
+            org.hostrunner.springboot.HostsFileManager.clearHostsFile();
         } catch (Exception e) {
             // 静默处理错误
             System.err.println("清空hosts文件失败: " + e.getMessage());
@@ -269,10 +314,5 @@ public class ConfigurationSelectionPanel extends JPanel {
         }
     }
 
-    private void showCurrentConfigurationDetail() {
-        // 显示工具窗口内容的完整对话框
-        ToolWindowContentDialog dialog = new ToolWindowContentDialog(project);
-        dialog.show();
-    }
 
 }

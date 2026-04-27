@@ -46,13 +46,6 @@ public class HostConfigurationConfigurable implements Configurable {
         decorator.setEditAction(anActionButton -> editConfiguration());
         decorator.setRemoveAction(anActionButton -> removeConfiguration());
 
-        // 添加模板按钮
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton templateButton = new JButton("Add from Template");
-        templateButton.addActionListener(e -> addFromTemplate());
-        buttonPanel.add(templateButton);
-
-        mainPanel.add(buttonPanel, BorderLayout.NORTH);
         mainPanel.add(decorator.createPanel(), BorderLayout.CENTER);
     }
 
@@ -67,21 +60,6 @@ public class HostConfigurationConfigurable implements Configurable {
         }
     }
 
-    private void addFromTemplate() {
-        TemplateSelectionDialog dialog = new TemplateSelectionDialog();
-        if (dialog.showAndGet()) {
-            HostConfiguration template = dialog.getSelectedTemplate();
-            String newName = dialog.getNewConfigurationName();
-
-            if (newName != null && !newName.trim().isEmpty()) {
-                HostConfiguration newConfig = ConfigurationTemplate.createFromTemplate(template, newName);
-                if (validateConfiguration(newConfig, null)) {
-                    service.addConfiguration(newConfig);
-                    refreshTable();
-                }
-            }
-        }
-    }
 
     private void editConfiguration() {
         int selectedRow = configurationTable.getSelectedRow();
@@ -102,6 +80,18 @@ public class HostConfigurationConfigurable implements Configurable {
         int selectedRow = configurationTable.getSelectedRow();
         if (selectedRow >= 0) {
             HostConfiguration config = tableModel.getConfigurationAt(selectedRow);
+
+            // 检查配置是否被选中
+            HostConfiguration selectedConfig = service.getSelectedConfiguration();
+            if (selectedConfig != null && selectedConfig.getId().equals(config.getId())) {
+                Messages.showErrorDialog(
+                    "无法删除配置 '" + config.getName() + "'，因为该配置当前已被选中使用。\n" +
+                    "请先切换到其他配置或取消选择后，再尝试删除。",
+                    "配置删除失败"
+                );
+                return;
+            }
+
             int result = Messages.showYesNoDialog(
                 "确定要删除配置 '" + config.getName() + "' 吗？",
                 "删除配置",

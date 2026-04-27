@@ -124,6 +124,18 @@ public class ConfigurationManagementPanel extends JPanel {
         int selectedRow = configurationTable.getSelectedRow();
         if (selectedRow >= 0) {
             HostConfiguration config = tableModel.getConfigurationAt(selectedRow);
+
+            // 检查配置是否被选中
+            HostConfiguration selectedConfig = service.getSelectedConfiguration();
+            if (selectedConfig != null && selectedConfig.getId().equals(config.getId())) {
+                Messages.showErrorDialog(
+                    "无法删除配置 '" + config.getName() + "'，因为该配置当前已被选中使用。\n" +
+                    "请先切换到其他配置或取消选择后，再尝试删除。",
+                    "配置删除失败"
+                );
+                return;
+            }
+
             int result = Messages.showYesNoDialog(
                 "确定要删除配置 '" + config.getName() + "' 吗？",
                 "删除配置",

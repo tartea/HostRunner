@@ -11,8 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 /**
  * Host配置状态栏组件
@@ -55,15 +53,6 @@ public class HostConfigurationStatusWidget implements StatusBarWidget {
             label.setFont(label.getFont().deriveFont(11f));
             label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
-            // 添加点击事件
-            label.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if (e.getButton() == MouseEvent.BUTTON1) {
-                        showConfigurationDetail();
-                    }
-                }
-            });
 
             updateStatus(this.project);
         }
@@ -71,15 +60,6 @@ public class HostConfigurationStatusWidget implements StatusBarWidget {
     }
 
 
-    private void showConfigurationDetail() {
-        HostConfigurationService service = HostConfigurationService.getInstance();
-        HostConfiguration selectedConfig = service.getSelectedConfiguration();
-
-        if (selectedConfig != null) {
-            ConfigurationDetailDialog dialog = new ConfigurationDetailDialog(selectedConfig);
-            dialog.show();
-        }
-    }
 
     /**
      * 更新状态栏显示

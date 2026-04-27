@@ -22,24 +22,6 @@ public class HostConfigurationToolWindow implements ToolWindowFactory {
         Content content = contentFactory.createContent(panel, "", false);
         toolWindow.getContentManager().addContent(content);
 
-        // 使用组件监听器检测工具窗口显示
-        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
-            private boolean hasShownDialog = false;
-
-            @Override
-            public void componentShown(java.awt.event.ComponentEvent e) {
-                if (!hasShownDialog) {
-                    hasShownDialog = true;
-                    // 延迟执行以确保UI准备就绪
-                    javax.swing.SwingUtilities.invokeLater(() -> {
-                        ToolWindowContentDialog dialog = new ToolWindowContentDialog(project);
-                        dialog.show();
-                        // 隐藏工具窗口
-                        toolWindow.hide();
-                    });
-                }
-            }
-        });
     }
 
     @Override

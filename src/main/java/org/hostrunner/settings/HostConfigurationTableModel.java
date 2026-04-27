@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class HostConfigurationTableModel extends AbstractTableModel {
 
-    private final String[] columnNames = {"名称", "Hosts内容预览", "JDK版本"};
+    private final String[] columnNames = {"名称", "Hosts内容预览"};
     private List<HostConfiguration> configurations = new ArrayList<>();
 
     public void refreshData(List<HostConfiguration> newConfigurations) {
@@ -51,8 +51,6 @@ public class HostConfigurationTableModel extends AbstractTableModel {
                 }
                 String[] lines = config.getHostsContent().split("\n");
                 return lines.length > 0 ? lines[0] + (lines.length > 1 ? "..." : "") : "<空>";
-            case 2: // JDK版本
-                return config.isJdk9OrAbove() ? "JDK 9+" : "JDK 9-";
             default:
                 return null;
         }

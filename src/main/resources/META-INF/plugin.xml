@@ -1,4 +1,4 @@
-<idea-plugin>
+<idea-plugin icon="/icons/plugin-icon.svg">
     <id>org.hostrunner.plugin</id>
     <name>HostRunner</name>
     <description>用户自定义本地host内容</description>
@@ -43,7 +43,7 @@
             id="Host Configuration"
             anchor="right"
             factoryClass="org.hostrunner.toolwindow.HostConfigurationToolWindow"
-            icon="/icons/ip-address.svg"/>
+            icon="/icons/plugin-icon.svg"/>
 
         <!-- Spring Boot运行配置扩展 -->
         <runConfigurationExtension
