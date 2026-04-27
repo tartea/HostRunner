@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import org.hostrunner.model.HostConfiguration;
 import org.hostrunner.persistent.HostConfigurationState;
+import org.hostrunner.messaging.HostConfigurationMessagePublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +16,11 @@ import java.util.List;
 public final class HostConfigurationService {
 
     private final HostConfigurationState state;
+    private final HostConfigurationMessagePublisher messagePublisher;
 
     public HostConfigurationService() {
         this.state = HostConfigurationState.getInstance();
+        this.messagePublisher = HostConfigurationMessagePublisher.getInstance();
     }
 
     public static HostConfigurationService getInstance() {
@@ -39,6 +42,9 @@ public final class HostConfigurationService {
         List<HostConfiguration> configs = new ArrayList<>(state.getConfigurations());
         configs.add(configuration);
         state.setConfigurations(configs);
+
+        // 发布配置添加消息
+        messagePublisher.publishConfigurationAdded(configuration.getId());
     }
 
     /**
@@ -53,6 +59,9 @@ public final class HostConfigurationService {
             }
         }
         state.setConfigurations(configs);
+
+        // 发布配置更新消息
+        messagePublisher.publishConfigurationUpdated(configuration.getId());
     }
 
     /**
@@ -67,6 +76,9 @@ public final class HostConfigurationService {
         if (configurationId.equals(state.getSelectedConfigurationId())) {
             state.setSelectedConfigurationId(null);
         }
+
+        // 发布配置删除消息
+        messagePublisher.publishConfigurationDeleted(configurationId);
     }
 
     /**
@@ -87,6 +99,9 @@ public final class HostConfigurationService {
         HostConfiguration config = getConfigurationById(configurationId);
         if (config != null) {
             state.setSelectedConfigurationId(configurationId);
+
+            // 发布配置选择消息
+            messagePublisher.publishConfigurationSelected(configurationId);
         }
     }
 
@@ -95,6 +110,9 @@ public final class HostConfigurationService {
      */
     public void deselectConfiguration() {
         state.setSelectedConfigurationId(null);
+
+        // 发布配置取消选择消息
+        messagePublisher.publishConfigurationSelected(null);
     }
 
     /**
