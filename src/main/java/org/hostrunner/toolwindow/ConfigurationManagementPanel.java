@@ -1,5 +1,6 @@
 package org.hostrunner.toolwindow;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.ToolbarDecorator;
@@ -37,24 +38,20 @@ public class ConfigurationManagementPanel extends JPanel {
     }
 
     private void setupMessageBusSubscription() {
-        // 订阅消息总线以接收配置变更通知
-        messageBusConnection = project.getMessageBus().connect();
+        messageBusConnection = ApplicationManager.getApplication()
+            .getMessageBus().connect(project);
         messageBusConnection.subscribe(HostConfigurationMessageHandler.TOPIC, new HostConfigurationMessageHandler() {
             @Override
             public void onConfigurationChanged(String changeType, String configurationId, String projectName) {
-                // 避免处理自己发送的消息（可选优化）
                 if (projectName.equals(project.getName())) {
                     return;
                 }
 
-                // 在EDT中执行UI更新
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     refreshTable();
-                    // 通知其他标签页刷新
                     if (refreshCallback != null) {
                         refreshCallback.accept(null);
                     }
-                    // 更新状态栏显示
                     HostConfigurationStatusWidget.updateStatus(project);
                 });
             }

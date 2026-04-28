@@ -18,30 +18,24 @@ public final class HostConfigurationMessagePublisher {
     }
 
     /**
-     * Publish a configuration change message to all projects
+     * Publish a configuration change message to all subscribers via the application-level message bus.
      */
     public void publishConfigurationChange(@NotNull String changeType, String configurationId) {
-        // Get current project name to include in message
+        String projectName = getActiveProjectName();
+        ApplicationManager.getApplication()
+            .getMessageBus()
+            .syncPublisher(HostConfigurationMessageHandler.TOPIC)
+            .onConfigurationChanged(changeType, configurationId, projectName);
+    }
+
+    private static String getActiveProjectName() {
         Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        Project currentProject = null;
-
-        // Find the current project context
-        for (Project project : openProjects) {
-            if (project.isDisposed()) continue;
-            currentProject = project;
-            break;
-        }
-
-        String projectName = currentProject != null ? currentProject.getName() : "Unknown";
-
-        // Publish to all open projects
         for (Project project : openProjects) {
             if (!project.isDisposed()) {
-                HostConfigurationMessageHandler publisher =
-                    project.getMessageBus().syncPublisher(HostConfigurationMessageHandler.TOPIC);
-                publisher.onConfigurationChanged(changeType, configurationId, projectName);
+                return project.getName();
             }
         }
+        return "Unknown";
     }
 
     /**
