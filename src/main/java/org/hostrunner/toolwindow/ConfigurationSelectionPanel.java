@@ -70,62 +70,65 @@ public class ConfigurationSelectionPanel extends JPanel {
         });
     }
 
-    private void initializeComponents() {
-        setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // 第一行：搜索框
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        searchPanel.add(new JLabel("搜索:"));
-        searchField = new JTextField(30);
-        searchField.setToolTipText("输入配置名称进行搜索");
-        searchField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                filterConfigurations(searchField.getText().trim());
-            }
-        });
-        searchPanel.add(searchField);
-
-        // 第二行：按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-
-        // 刷新按钮
-        refreshButton = new JButton("刷新");
-        refreshButton.addActionListener(e -> refreshConfigurations());
-        refreshButton.setFocusPainted(false);
-        buttonPanel.add(refreshButton);
-
-        // 清空选择按钮
-        clearButton = new JButton("清空选择");
-        clearButton.addActionListener(e -> clearAllSelections());
-        clearButton.setFocusPainted(false);
-        buttonPanel.add(clearButton);
-
-        // 查看hosts文件按钮
-        viewHostsButton = new JButton("查看hosts文件");
-        viewHostsButton.addActionListener(e -> viewHostsFile());
-        viewHostsButton.setFocusPainted(false);
-        buttonPanel.add(viewHostsButton);
-
-        // 顶部容器面板
-        JPanel topPanel = new JPanel();
-        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
-        topPanel.add(searchPanel);
-        topPanel.add(Box.createVerticalStrut(10));
-        topPanel.add(buttonPanel);
-
-        add(topPanel, BorderLayout.NORTH);
-
-        // 卡片面板
-        cardsPanel = new JPanel();
-        cardsPanel.setLayout(new BoxLayout(cardsPanel, BoxLayout.Y_AXIS));
-        JScrollPane scrollPane = new JScrollPane(cardsPanel);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-
-        add(scrollPane, BorderLayout.CENTER);
-    }
+   private void initializeComponents() {
+    setLayout(new BorderLayout(10, 10));
+    setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    
+    // 使用垂直 BoxLayout 的顶部面板
+    JPanel topPanel = new JPanel();
+    topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+    
+    // 搜索框 - 设置固定高度
+    JPanel searchPanel = new JPanel(new BorderLayout(5, 0));
+    searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+    searchPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    searchPanel.add(new JLabel("搜索:"), BorderLayout.WEST);
+    
+    searchField = new JTextField();
+    searchField.setToolTipText("输入配置名称进行搜索");
+    searchField.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyReleased(KeyEvent e) {
+            filterConfigurations(searchField.getText().trim());
+        }
+    });
+    searchPanel.add(searchField, BorderLayout.CENTER);
+    
+    // 按钮面板 - 设置固定高度
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+    buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+    buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    
+    refreshButton = new JButton("刷新");
+    refreshButton.addActionListener(e -> refreshConfigurations());
+    refreshButton.setFocusPainted(false);
+    buttonPanel.add(refreshButton);
+    
+    clearButton = new JButton("清空选择");
+    clearButton.addActionListener(e -> clearAllSelections());
+    clearButton.setFocusPainted(false);
+    buttonPanel.add(clearButton);
+    
+    viewHostsButton = new JButton("查看hosts文件");
+    viewHostsButton.addActionListener(e -> viewHostsFile());
+    viewHostsButton.setFocusPainted(false);
+    buttonPanel.add(viewHostsButton);
+    
+    topPanel.add(searchPanel);
+    topPanel.add(Box.createVerticalStrut(8));
+    topPanel.add(buttonPanel);
+    
+    add(topPanel, BorderLayout.NORTH);
+    
+    // 卡片面板
+    cardsPanel = new JPanel();
+    cardsPanel.setLayout(new BoxLayout(cardsPanel, BoxLayout.Y_AXIS));
+    JScrollPane scrollPane = new JScrollPane(cardsPanel);
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+    
+    add(scrollPane, BorderLayout.CENTER);
+}
 
     private void refreshConfigurations() {
         filterConfigurations(searchField.getText().trim());
