@@ -229,7 +229,7 @@ public class HostsFileManager {
     /**
      * 读取当前hosts文件内容
      */
-    private static String readCurrentHosts() {
+    public static String readCurrentHosts() {
         try {
             String hostsPath = getHostsPath();
             return new String(Files.readAllBytes(Paths.get(hostsPath)), "UTF-8");

@@ -1,8 +1,8 @@
 package org.hostrunner.toolwindow;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.openapi.ui.Messages;
 import org.hostrunner.messaging.HostConfigurationMessageHandler;
 import org.hostrunner.model.HostConfiguration;
 import org.hostrunner.service.HostConfigurationService;
@@ -14,8 +14,8 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.BorderFactory;
 import javax.swing.JTextField;
 import javax.swing.Box;
-import java.awt.Color;
-import java.awt.Cursor;
+import javax.swing.JTextArea;
+import javax.swing.JDialog;
 import java.awt.Font;
 import java.awt.FlowLayout;
 import java.awt.BorderLayout;
@@ -37,6 +37,7 @@ public class ConfigurationSelectionPanel extends JPanel {
     private JPanel cardsPanel;
     private JButton refreshButton;
     private JButton clearButton;
+    private JButton viewHostsButton;
     private JTextField searchField;
     private ButtonGroup selectionGroup;
     private MessageBusConnection messageBusConnection;
@@ -73,13 +74,10 @@ public class ConfigurationSelectionPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // 顶部面板使用 BorderLayout
-        JPanel topPanel = new JPanel(new BorderLayout(10, 5));
-
-        // 搜索框面板 - 放在最左边
-        JPanel searchPanel = new JPanel(new BorderLayout(5, 0));
-        searchPanel.add(new JLabel("搜索:"), BorderLayout.WEST);
-        searchField = new JTextField(20);
+        // 第一行：搜索框
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        searchPanel.add(new JLabel("搜索:"));
+        searchField = new JTextField(30);
         searchField.setToolTipText("输入配置名称进行搜索");
         searchField.addKeyListener(new KeyAdapter() {
             @Override
@@ -87,11 +85,9 @@ public class ConfigurationSelectionPanel extends JPanel {
                 filterConfigurations(searchField.getText().trim());
             }
         });
-        searchPanel.add(searchField, BorderLayout.CENTER);
+        searchPanel.add(searchField);
 
-        topPanel.add(searchPanel, BorderLayout.WEST);
-
-        // 按钮面板 - 放在搜索框右边
+        // 第二行：按钮面板
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
 
         // 刷新按钮
@@ -106,7 +102,18 @@ public class ConfigurationSelectionPanel extends JPanel {
         clearButton.setFocusPainted(false);
         buttonPanel.add(clearButton);
 
-        topPanel.add(buttonPanel, BorderLayout.CENTER);
+        // 查看hosts文件按钮
+        viewHostsButton = new JButton("查看hosts文件");
+        viewHostsButton.addActionListener(e -> viewHostsFile());
+        viewHostsButton.setFocusPainted(false);
+        buttonPanel.add(viewHostsButton);
+
+        // 顶部容器面板
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        topPanel.add(searchPanel);
+        topPanel.add(Box.createVerticalStrut(5));
+        topPanel.add(buttonPanel);
 
         add(topPanel, BorderLayout.NORTH);
 
@@ -275,6 +282,48 @@ public class ConfigurationSelectionPanel extends JPanel {
         } catch (Exception e) {
             // 静默处理错误
             System.err.println("清空hosts文件失败: " + e.getMessage());
+        }
+    }
+
+    private void viewHostsFile() {
+        try {
+            String hostsContent = org.hostrunner.springboot.HostsFileManager.readCurrentHosts();
+
+            // 创建文本区域显示hosts文件内容
+            JTextArea textArea = new JTextArea(hostsContent, 20, 60);
+            textArea.setEditable(false);
+            textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+
+            // 创建滚动面板
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+            scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+            // 创建自定义对话框
+            JDialog dialog = new JDialog();
+            dialog.setTitle("本地hosts文件内容");
+            dialog.setModal(true);
+            dialog.setLayout(new BorderLayout());
+            dialog.add(scrollPane, BorderLayout.CENTER);
+
+            // 添加关闭按钮
+            JButton closeButton = new JButton("关闭");
+            closeButton.addActionListener(e -> dialog.dispose());
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.add(closeButton);
+            dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+            // 设置对话框属性
+            dialog.pack();
+            dialog.setLocationRelativeTo(null); // 居中显示
+            dialog.setVisible(true);
+
+        } catch (Exception e) {
+            Messages.showErrorDialog(
+                project,
+                "读取hosts文件失败: " + e.getMessage(),
+                "读取失败"
+            );
         }
     }
 
