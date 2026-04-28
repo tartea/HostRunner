@@ -63,4 +63,13 @@
             id="HostConfigurationStatus"/>
     </extensions>
 
+    <actions>
+        <action id="org.hostrunner.QuickPickConfiguration"
+                class="org.hostrunner.action.QuickPickConfigurationAction"
+                text="快速选择Host配置"
+                description="通过快捷键弹出配置选择弹框">
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift H"/>
+        </action>
+    </actions>
+
 </idea-plugin>
