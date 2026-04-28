@@ -80,7 +80,7 @@ public class ConfigurationPickerPanel extends JPanel {
                 String searchLower = searchText.toLowerCase();
                 filtered = allConfigurations.stream()
                     .filter(config -> {
-                        String name = config.getName().toLowerCase();
+                        String name = config.getName() != null ? config.getName().toLowerCase() : "";
                         String hosts = config.getHostsContent() != null ? config.getHostsContent().toLowerCase() : "";
                         String vm = config.getVmOptions() != null ? config.getVmOptions().toLowerCase() : "";
                         return name.contains(searchLower) || hosts.contains(searchLower) || vm.contains(searchLower);
