@@ -7,6 +7,7 @@ import com.intellij.openapi.ui.Messages;
 import org.hostrunner.messaging.HostConfigurationMessageHandler;
 import org.hostrunner.model.HostConfiguration;
 import org.hostrunner.service.HostConfigurationService;
+import org.hostrunner.springboot.HostsFileManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -102,6 +103,7 @@ public class ConfigurationSelectionPanel extends JPanel {
         service.deselectConfiguration();
         clearHostsFileImmediately();
         pickerPanel.refresh();
+        HostConfigurationStatusWidget.updateStatus(project);
     }
 
     private void updateClearButtonState() {
@@ -111,7 +113,7 @@ public class ConfigurationSelectionPanel extends JPanel {
 
     private void updateHostsFileImmediately(HostConfiguration configuration) {
         try {
-            org.hostrunner.springboot.HostsFileManager.updateHostsFile(configuration.getHostsContent());
+            HostsFileManager.updateHostsFile(configuration.getHostsContent());
         } catch (Exception e) {
             System.err.println("更新hosts文件失败: " + e.getMessage());
         }
@@ -119,7 +121,7 @@ public class ConfigurationSelectionPanel extends JPanel {
 
     private void clearHostsFileImmediately() {
         try {
-            org.hostrunner.springboot.HostsFileManager.clearHostsFile();
+            HostsFileManager.clearHostsFile();
         } catch (Exception e) {
             System.err.println("清空hosts文件失败: " + e.getMessage());
         }
@@ -127,7 +129,7 @@ public class ConfigurationSelectionPanel extends JPanel {
 
     private void viewHostsFile() {
         try {
-            String hostsContent = org.hostrunner.springboot.HostsFileManager.readCurrentHosts();
+            String hostsContent = HostsFileManager.readCurrentHosts();
 
             JTextArea textArea = new JTextArea(hostsContent, 40, 100);
             textArea.setEditable(false);
