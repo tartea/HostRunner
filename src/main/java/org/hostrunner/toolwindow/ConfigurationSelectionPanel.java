@@ -292,7 +292,7 @@ public class ConfigurationSelectionPanel extends JPanel {
             String hostsContent = org.hostrunner.springboot.HostsFileManager.readCurrentHosts();
 
             // 创建文本区域显示hosts文件内容
-            JTextArea textArea = new JTextArea(hostsContent, 20, 60);
+            JTextArea textArea = new JTextArea(hostsContent, 40, 100);
             textArea.setEditable(false);
             textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
@@ -316,6 +316,7 @@ public class ConfigurationSelectionPanel extends JPanel {
             dialog.add(buttonPanel, BorderLayout.SOUTH);
 
             // 设置对话框属性
+            dialog.setPreferredSize(new Dimension(900, 700));
             dialog.pack();
             dialog.setLocationRelativeTo(null); // 居中显示
             dialog.setVisible(true);
