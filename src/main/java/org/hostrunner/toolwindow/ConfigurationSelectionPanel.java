@@ -40,7 +40,8 @@ public class ConfigurationSelectionPanel extends JPanel {
         messageBusConnection.subscribe(HostConfigurationMessageHandler.TOPIC, new HostConfigurationMessageHandler() {
             @Override
             public void onConfigurationChanged(String changeType, String configurationId, String projectName) {
-                if (projectName.equals(project.getName())) {
+                // SELECT 事件不区分项目来源，弹框和工具窗口需要同步选中状态
+                if (!"SELECT".equals(changeType) && projectName.equals(project.getName())) {
                     return;
                 }
 
