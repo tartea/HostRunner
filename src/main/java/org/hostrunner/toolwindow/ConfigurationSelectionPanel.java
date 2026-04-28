@@ -112,7 +112,7 @@ public class ConfigurationSelectionPanel extends JPanel {
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         topPanel.add(searchPanel);
-        topPanel.add(Box.createVerticalStrut(5));
+        topPanel.add(Box.createVerticalStrut(10));
         topPanel.add(buttonPanel);
 
         add(topPanel, BorderLayout.NORTH);
