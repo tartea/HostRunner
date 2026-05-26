@@ -13,7 +13,7 @@ repositories {
 
 // 配置 IntelliJ 插件参数
 intellij {
-    version.set("2023.1.0")
+    version.set("2023.1.1")
     type.set("IC") // IC for Community Edition, IU for Ultimate
     plugins.set(listOf("com.intellij.java"))
     updateSinceUntilBuild.set(true)
