@@ -2,7 +2,7 @@
     <id>org.hostrunner.plugin</id>
     <name>HostRunner</name>
     <description>用户自定义本地host内容</description>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <vendor>HostRunner Team</vendor>
     <idea-version since-build="243" until-build="251.*"/>
 
@@ -19,7 +19,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-      <h3>1.0.0</h3>
+      <h3>1.1.0</h3>
       <ul>
         <li>初始版本发布</li>
         <li>支持多组hosts配置管理</li>

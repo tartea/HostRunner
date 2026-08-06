@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.hostrunner"
-version = "1.0.0"
+version = "1.1.0"
 
 repositories {
     mavenCentral()
@@ -57,7 +57,7 @@ tasks {
         sinceBuild.set("231")
         untilBuild.set("261.*")
         changeNotes.set("""
-            <h3>1.0.0</h3>
+            <h3>1.1.0</h3>
             <ul>
                 <li>初始版本发布</li>
                 <li>支持多组hosts配置管理</li>

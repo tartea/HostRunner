@@ -21,6 +21,8 @@ public class ConfigurationPickerPanel extends JPanel {
     private ButtonGroup selectionGroup;
     private List<HostConfiguration> allConfigurations;
     private HostConfigurationService service;
+    private String groupFilter;
+    private boolean showGroupLabels;
 
     public ConfigurationPickerPanel(Consumer<HostConfiguration> selectionCallback) {
         this.selectionCallback = selectionCallback;
@@ -48,7 +50,7 @@ public class ConfigurationPickerPanel extends JPanel {
         searchPanel.add(searchField, BorderLayout.CENTER);
         add(searchPanel, BorderLayout.NORTH);
 
-        // 卡片面板
+        // 卡片面板 — 垂直排列行，每行3张卡片
         cardsPanel = new JPanel();
         cardsPanel.setLayout(new BoxLayout(cardsPanel, BoxLayout.Y_AXIS));
         JScrollPane scrollPane = new JScrollPane(cardsPanel);
@@ -58,7 +60,11 @@ public class ConfigurationPickerPanel extends JPanel {
     }
 
     private void refreshConfigurations() {
-        allConfigurations = service.getAllConfigurations();
+        if (groupFilter != null && !groupFilter.isEmpty()) {
+            allConfigurations = service.getConfigurationsByGroup(groupFilter);
+        } else {
+            allConfigurations = service.getAllConfigurations();
+        }
         filterConfigurations();
     }
 
@@ -94,17 +100,58 @@ public class ConfigurationPickerPanel extends JPanel {
                 noResults.setForeground(UIManager.getColor("Label.disabledForeground"));
                 cardsPanel.add(noResults);
             } else {
-                for (HostConfiguration config : filtered) {
-                    boolean isSelected = selectedConfig != null && selectedConfig.getId().equals(config.getId());
-                    ConfigurationCard card = new ConfigurationCard(config, isSelected, selectionGroup, selectionCallback);
-                    cardsPanel.add(card);
+                final int COLS = 3;
+                final int CARD_WIDTH = 280;
+                List<HostConfiguration> configList = filtered;
+                for (int i = 0; i < configList.size(); i += COLS) {
+                    JPanel rowPanel = new JPanel();
+                    rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
+                    rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+
+                    for (int j = 0; j < COLS; j++) {
+                        if (i + j < configList.size()) {
+                            HostConfiguration config = configList.get(i + j);
+                            boolean isSelected = selectedConfig != null && selectedConfig.getId().equals(config.getId());
+                            ConfigurationCard card = new ConfigurationCard(config, isSelected, selectionGroup, selectionCallback, showGroupLabels);
+                            card.setPreferredSize(new Dimension(CARD_WIDTH, 50));
+                            card.setMaximumSize(new Dimension(CARD_WIDTH, 50));
+                            rowPanel.add(card);
+                        } else {
+                            // 占位面板保持列对齐
+                            JPanel placeholder = new JPanel();
+                            placeholder.setPreferredSize(new Dimension(CARD_WIDTH, 1));
+                            placeholder.setMaximumSize(new Dimension(CARD_WIDTH, Integer.MAX_VALUE));
+                            rowPanel.add(placeholder);
+                        }
+                        if (j < COLS - 1) {
+                            rowPanel.add(Box.createHorizontalStrut(8));
+                        }
+                    }
+
+                    rowPanel.setAlignmentX(LEFT_ALIGNMENT);
+                    cardsPanel.add(rowPanel);
                     cardsPanel.add(Box.createVerticalStrut(5));
                 }
+                cardsPanel.add(Box.createVerticalGlue());
             }
         }
 
         cardsPanel.revalidate();
         cardsPanel.repaint();
+    }
+
+    public void setGroupFilter(String groupName) {
+        this.groupFilter = groupName;
+        this.showGroupLabels = false;
+    }
+
+    public void setShowGroupLabels(boolean show) {
+        this.showGroupLabels = show;
+    }
+
+    public void clearGroupFilter() {
+        this.groupFilter = null;
+        this.showGroupLabels = false;
     }
 
     /**

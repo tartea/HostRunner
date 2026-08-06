@@ -5,10 +5,12 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.JBScrollPane;
 import org.hostrunner.model.HostConfiguration;
+import org.hostrunner.service.HostConfigurationService;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 /**
  * 配置编辑表单
@@ -19,6 +21,7 @@ public class HostConfigurationForm extends DialogWrapper {
     private JTextField nameField;
     private JBTextArea hostsContentArea;
     private JBTextArea vmOptionsArea;
+    private JComboBox<String> groupCombo;
 
     public HostConfigurationForm(HostConfiguration configuration) {
         super(true);
@@ -45,9 +48,28 @@ public class HostConfigurationForm extends DialogWrapper {
         nameField.setText(configuration.getName());
         panel.add(nameField, gbc);
 
-        // Hosts内容
+        // 所属分组
         gbc.gridx = 0;
         gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("所属分组:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridwidth = 2;
+        List<String> groups = HostConfigurationService.getInstance().getGroups();
+        groupCombo = new JComboBox<>(groups.toArray(new String[0]));
+        groupCombo.setEditable(true);
+        String currentGroup = configuration.getGroupName();
+        if (currentGroup != null && !currentGroup.trim().isEmpty()) {
+            groupCombo.setSelectedItem(currentGroup);
+        } else if (!groups.isEmpty()) {
+            groupCombo.setSelectedItem(groups.get(0));
+        }
+        panel.add(groupCombo, gbc);
+
+        // Hosts内容
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         gbc.gridwidth = 1;
         panel.add(new JLabel("Hosts内容:"), gbc);
 
@@ -62,7 +84,7 @@ public class HostConfigurationForm extends DialogWrapper {
 
         // VM选项
         gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridy = 3;
         gbc.gridwidth = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(new JLabel("VM选项:"), gbc);
@@ -78,7 +100,7 @@ public class HostConfigurationForm extends DialogWrapper {
 
         // 提示信息
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 4;
         gbc.gridwidth = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         JLabel hintLabel = new JLabel("<html><small>提示：VM选项使用空格分隔多个参数，如：-Xmx512m -Dspring.profiles.active=dev</small></html>");
@@ -108,6 +130,8 @@ public class HostConfigurationForm extends DialogWrapper {
         configuration.setName(nameField.getText().trim());
         configuration.setHostsContent(hostsContentArea.getText());
         configuration.setVmOptions(vmOptionsArea.getText());
+        Object selectedGroup = groupCombo.getSelectedItem();
+        configuration.setGroupName(selectedGroup != null ? selectedGroup.toString().trim() : "未分组");
         return configuration;
     }
 

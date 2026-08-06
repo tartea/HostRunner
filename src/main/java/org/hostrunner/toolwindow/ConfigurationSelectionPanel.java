@@ -2,19 +2,21 @@ package org.hostrunner.toolwindow;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.messages.MessageBusConnection;
 import org.hostrunner.messaging.HostConfigurationMessageHandler;
 import org.hostrunner.model.HostConfiguration;
 import org.hostrunner.service.HostConfigurationService;
 import org.hostrunner.springboot.HostsFileManager;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.util.List;
 
 /**
- * 配置选择标签页
+ * 配置选择标签页 — 树形展示（分组节点 → 配置节点），只读选择
  */
 public class ConfigurationSelectionPanel extends JPanel {
 
@@ -23,7 +25,8 @@ public class ConfigurationSelectionPanel extends JPanel {
     private JButton refreshButton;
     private JButton clearButton;
     private JButton viewHostsButton;
-    private ConfigurationPickerPanel pickerPanel;
+    private ConfigurationSelectionTree selectionTree;
+    private JTextField searchField;
     private MessageBusConnection messageBusConnection;
 
     public ConfigurationSelectionPanel(Project project) {
@@ -31,7 +34,7 @@ public class ConfigurationSelectionPanel extends JPanel {
         this.service = HostConfigurationService.getInstance();
         initializeComponents();
         setupMessageBusSubscription();
-        pickerPanel.refresh();
+        selectionTree.refreshAndExpandToSelected();
     }
 
     private void setupMessageBusSubscription() {
@@ -40,13 +43,12 @@ public class ConfigurationSelectionPanel extends JPanel {
         messageBusConnection.subscribe(HostConfigurationMessageHandler.TOPIC, new HostConfigurationMessageHandler() {
             @Override
             public void onConfigurationChanged(String changeType, String configurationId, String projectName) {
-                // SELECT 事件不区分项目来源，弹框和工具窗口需要同步选中状态
                 if (!"SELECT".equals(changeType) && projectName.equals(project.getName())) {
                     return;
                 }
 
                 SwingUtilities.invokeLater(() -> {
-                    pickerPanel.refresh();
+                    selectionTree.refreshAndExpandToSelected();
                     validateSelection();
                 });
             }
@@ -77,25 +79,44 @@ public class ConfigurationSelectionPanel extends JPanel {
 
         add(buttonPanel, BorderLayout.NORTH);
 
-        // 嵌入 ConfigurationPickerPanel
-        pickerPanel = new ConfigurationPickerPanel(this::onConfigurationSelected);
-        add(pickerPanel, BorderLayout.CENTER);
+        // 搜索框
+        JPanel searchPanel = new JPanel(new BorderLayout(5, 0));
+        searchPanel.add(new JLabel("搜索:"), BorderLayout.WEST);
+        searchField = new JTextField();
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { filterTree(); }
+            @Override public void removeUpdate(DocumentEvent e) { filterTree(); }
+            @Override public void changedUpdate(DocumentEvent e) { filterTree(); }
+        });
+        searchPanel.add(searchField, BorderLayout.CENTER);
+
+        JPanel topPanel = new JPanel(new BorderLayout(0, 5));
+        topPanel.add(buttonPanel, BorderLayout.NORTH);
+        topPanel.add(searchPanel, BorderLayout.SOUTH);
+        add(topPanel, BorderLayout.NORTH);
+
+        // 树形配置选择器
+        selectionTree = new ConfigurationSelectionTree();
+        selectionTree.setSelectionCallback(this::onConfigurationSelected);
+
+        JScrollPane scrollPane = new JScrollPane(selectionTree);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        add(scrollPane, BorderLayout.CENTER);
+    }
+
+    private void filterTree() {
+        selectionTree.filterTree(searchField.getText().trim());
     }
 
     private void refreshConfigurations() {
-        pickerPanel.refresh();
+        selectionTree.refreshAndExpandToSelected();
     }
 
     private void onConfigurationSelected(HostConfiguration configuration) {
         if (configuration != null) {
             service.selectConfiguration(configuration.getId());
             updateHostsFileImmediately(configuration);
-            updateClearButtonState();
-            HostConfigurationStatusWidget.updateStatus(project);
-        } else {
-            service.deselectConfiguration();
-            clearHostsFileImmediately();
-            updateClearButtonState();
             HostConfigurationStatusWidget.updateStatus(project);
         }
     }
@@ -103,13 +124,8 @@ public class ConfigurationSelectionPanel extends JPanel {
     private void clearAllSelections() {
         service.deselectConfiguration();
         clearHostsFileImmediately();
-        pickerPanel.refresh();
+        selectionTree.refresh();
         HostConfigurationStatusWidget.updateStatus(project);
-    }
-
-    private void updateClearButtonState() {
-        clearButton.setEnabled(true);
-        clearButton.setToolTipText("清空所有选择");
     }
 
     private void updateHostsFileImmediately(HostConfiguration configuration) {
@@ -148,9 +164,9 @@ public class ConfigurationSelectionPanel extends JPanel {
 
             JButton closeButton = new JButton("关闭");
             closeButton.addActionListener(e -> dialog.dispose());
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            buttonPanel.add(closeButton);
-            dialog.add(buttonPanel, BorderLayout.SOUTH);
+            JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            btnPanel.add(closeButton);
+            dialog.add(btnPanel, BorderLayout.SOUTH);
 
             dialog.setPreferredSize(new Dimension(900, 700));
             dialog.pack();
@@ -179,9 +195,6 @@ public class ConfigurationSelectionPanel extends JPanel {
         }
     }
 
-    /**
-     * 验证当前选中的配置是否存在
-     */
     public void validateSelection() {
         List<HostConfiguration> configurations = service.getAllConfigurations();
         HostConfiguration selectedConfig = service.getSelectedConfiguration();
@@ -194,7 +207,7 @@ public class ConfigurationSelectionPanel extends JPanel {
             if (!configExists) {
                 service.deselectConfiguration();
                 clearHostsFileImmediately();
-                SwingUtilities.invokeLater(() -> pickerPanel.refresh());
+                SwingUtilities.invokeLater(() -> selectionTree.refresh());
             }
         }
     }

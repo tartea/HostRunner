@@ -23,19 +23,28 @@ public class ConfigurationCard extends JPanel {
             boolean isSelected,
             ButtonGroup buttonGroup,
             Consumer<HostConfiguration> selectionCallback) {
+        this(configuration, isSelected, buttonGroup, selectionCallback, false);
+    }
+
+    public ConfigurationCard(
+            HostConfiguration configuration,
+            boolean isSelected,
+            ButtonGroup buttonGroup,
+            Consumer<HostConfiguration> selectionCallback,
+            boolean showGroupLabel) {
         this.configuration = configuration;
         this.isSelected = isSelected;
         this.selectionCallback = selectionCallback;
 
-        initializeComponents(buttonGroup);
+        initializeComponents(buttonGroup, showGroupLabel);
         updateAppearance();
     }
 
-    private void initializeComponents(ButtonGroup buttonGroup) {
-        setLayout(new BorderLayout(8, 8));
+    private void initializeComponents(ButtonGroup buttonGroup, boolean showGroupLabel) {
+        setLayout(new BorderLayout(4, 4));
         setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(getBorderColor(), 2),
-            BorderFactory.createEmptyBorder(8, 8, 8, 8)
+            BorderFactory.createLineBorder(getBorderColor(), 1),
+            BorderFactory.createEmptyBorder(4, 6, 4, 6)
         ));
 
         // 选择按钮
@@ -73,11 +82,19 @@ public class ConfigurationCard extends JPanel {
 
         // 配置名称
         JLabel nameLabel = new JLabel(configuration.getName());
-        nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD, 13f));
+        nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD, 12f));
         contentPanel.add(nameLabel);
 
+        // 分组标签（仅在搜索平铺模式下显示）
+        if (showGroupLabel && configuration.getGroupName() != null && !configuration.getGroupName().isEmpty()) {
+            JLabel groupLabel = new JLabel(configuration.getGroupName());
+            groupLabel.setFont(groupLabel.getFont().deriveFont(9f));
+            groupLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+            contentPanel.add(groupLabel);
+        }
+
         // 添加间距
-        contentPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(Box.createVerticalStrut(3));
 
         // Hosts内容预览（只显示第一行）
         if (configuration.getHostsContent() != null && !configuration.getHostsContent().isEmpty()) {
@@ -87,7 +104,7 @@ public class ConfigurationCard extends JPanel {
                 firstLine = firstLine.substring(0, 50) + "...";
             }
             JLabel hostsLabel = new JLabel(firstLine);
-            hostsLabel.setFont(hostsLabel.getFont().deriveFont(10f));
+            hostsLabel.setFont(hostsLabel.getFont().deriveFont(9f));
             hostsLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
             contentPanel.add(hostsLabel);
         }
@@ -106,8 +123,8 @@ public class ConfigurationCard extends JPanel {
 
     private void updateAppearance() {
         setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(getBorderColor(), 2),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+            BorderFactory.createLineBorder(getBorderColor(), 1),
+            BorderFactory.createEmptyBorder(4, 6, 4, 6)
         ));
     }
 

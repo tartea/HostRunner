@@ -7,7 +7,9 @@ import org.hostrunner.persistent.HostConfigurationState;
 import org.hostrunner.messaging.HostConfigurationMessagePublisher;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 配置管理服务
@@ -18,9 +20,26 @@ public final class HostConfigurationService {
     private final HostConfigurationState state;
     private final HostConfigurationMessagePublisher messagePublisher;
 
+    private static final String DEFAULT_GROUP = "未分组";
+
     public HostConfigurationService() {
         this.state = HostConfigurationState.getInstance();
         this.messagePublisher = HostConfigurationMessagePublisher.getInstance();
+        migrateGroupNames();
+    }
+
+    private void migrateGroupNames() {
+        boolean changed = false;
+        List<HostConfiguration> configs = new ArrayList<>(state.getConfigurations());
+        for (HostConfiguration config : configs) {
+            if (config.getGroupName() == null || config.getGroupName().trim().isEmpty()) {
+                config.setGroupName(DEFAULT_GROUP);
+                changed = true;
+            }
+        }
+        if (changed) {
+            state.setConfigurations(configs);
+        }
     }
 
     public static HostConfigurationService getInstance() {
@@ -156,5 +175,29 @@ public final class HostConfigurationService {
     public void clearAllConfigurations() {
         state.setConfigurations(new ArrayList<>());
         state.setSelectedConfigurationId(null);
+    }
+
+    public List<String> getGroups() {
+        return state.getConfigurations().stream()
+            .map(HostConfiguration::getGroupName)
+            .filter(name -> name != null && !name.trim().isEmpty())
+            .distinct()
+            .sorted(Comparator.comparing((String g) -> !DEFAULT_GROUP.equals(g))
+                .thenComparing(Comparator.naturalOrder()))
+            .collect(Collectors.toList());
+    }
+
+    public List<HostConfiguration> getConfigurationsByGroup(String groupName) {
+        return state.getConfigurations().stream()
+            .filter(config -> groupName.equals(config.getGroupName())
+                || (groupName.equals(DEFAULT_GROUP) && (config.getGroupName() == null || config.getGroupName().trim().isEmpty())))
+            .collect(Collectors.toList());
+    }
+
+    public int getGroupCount(String groupName) {
+        return (int) state.getConfigurations().stream()
+            .filter(config -> groupName.equals(config.getGroupName())
+                || (groupName.equals(DEFAULT_GROUP) && (config.getGroupName() == null || config.getGroupName().trim().isEmpty())))
+            .count();
     }
 }

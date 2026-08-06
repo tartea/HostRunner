@@ -12,6 +12,7 @@ public class HostConfiguration {
     private String name;            // 配置名称
     private String hostsContent;    // hosts文件内容
     private String vmOptions;       // 用户自定义VM选项
+    private String groupName;       // 所属分组
 
     // 构造函数
     public HostConfiguration() {
@@ -44,6 +45,9 @@ public class HostConfiguration {
         this.vmOptions = vmOptions;
     }
 
+    public String getGroupName() { return groupName; }
+    public void setGroupName(String groupName) { this.groupName = groupName; }
+
 
     // 序列化方法
     public Map<String, Object> toMap() {
@@ -52,6 +56,7 @@ public class HostConfiguration {
         map.put("name", name);
         map.put("hostsContent", hostsContent);
         map.put("vmOptions", vmOptions);
+        map.put("groupName", groupName);
         return map;
     }
 
@@ -61,6 +66,7 @@ public class HostConfiguration {
         config.name = (String) map.get("name");
         config.hostsContent = (String) map.get("hostsContent");
         config.vmOptions = (String) map.get("vmOptions");
+        config.groupName = (String) map.get("groupName");
         return config;
     }
 

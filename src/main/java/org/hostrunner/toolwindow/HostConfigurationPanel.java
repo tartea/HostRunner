@@ -4,8 +4,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
 import org.hostrunner.messaging.HostConfigurationMessageHandler;
-import org.hostrunner.service.HostConfigurationService;
-import org.hostrunner.toolwindow.HostConfigurationStatusWidget;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +16,6 @@ import javax.swing.event.ChangeListener;
 public class HostConfigurationPanel extends JPanel {
 
     private final Project project;
-    private final HostConfigurationService service;
     private JTabbedPane tabbedPane;
     private ConfigurationManagementPanel managementPanel;
     private ConfigurationSelectionPanel selectionPanel;
@@ -26,7 +23,6 @@ public class HostConfigurationPanel extends JPanel {
 
     public HostConfigurationPanel(Project project) {
         this.project = project;
-        this.service = HostConfigurationService.getInstance();
         initializeComponents();
         setupMessageBusSubscription();
     }
@@ -90,7 +86,7 @@ public class HostConfigurationPanel extends JPanel {
 
     public void refresh() {
         // 刷新所有标签页
-        managementPanel.refreshTable();
+        managementPanel.refreshTree();
         selectionPanel.refresh();
     }
 
